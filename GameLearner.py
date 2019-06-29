@@ -41,14 +41,14 @@ class GameLearner:
                 self.reward = 5
         elif game.isStateChange():
             if game.eggCount == 1:
-                self.reward = -5 - extraPenalty
+                self.reward = -(5 + extraPenalty)
             elif game.eggCount == 0:
-                self.reward = -10 - extraPenalty #game end
+                self.reward = -(10 + extraPenalty) #game end
         else:
             if game.eggCount == 2:
-                self.reward = 2 + extraPenalty
+                self.reward = 2 + int(100/extraPenalty)
             elif game.eggCount == 1:
-                self.reward = 1 + extraPenalty
+                self.reward = 1 + int(100/extraPenalty)
         return self.reward
 
 
@@ -80,10 +80,10 @@ class GameLearner:
         for state, action, reward, next_state, done in minibatch:
             target = reward
             if not done:
-                target = reward + self.gamma * np.amax(self.model.predict(np.array([next_state]))[0])
+                target = reward + self.gamma * np.amax(self.model.predict(next_state.reshape((1, 3)))[0])
             target_f = self.model.predict(np.array([state]))
             target_f[0][np.argmax(action)] = target
-            self.model.fit(np.array([state]), target_f, epochs=1, verbose=0)
+            self.model.fit(state.reshape((1, 3)), target_f, epochs=1, verbose=0)
 
     def train_short_memory(self, state, action, reward, next_state, done):
         target = reward

@@ -13,7 +13,7 @@ class EggDrop:
         self.gameEnd = False
         self.stateChange = False
         self.progressing = True
-        self.targetFloor = randint(1, 101)
+        self.targetFloor = randint(1, 100)
 
     def selectFloor(self,floor):
         if floor >= self.targetFloor:
@@ -38,7 +38,7 @@ class EggDrop:
         return self.floor == self.targetFloor
 
     def getRewardVal(self):
-        return (self.targetFloor - self.floor) / 10
+        return np.abs(self.targetFloor - self.floor)
 
 def printGameData(data):
     predStr = ""
@@ -74,7 +74,7 @@ def run():
             else:
                 # predict action based on the old state
                 prediction = agent.model.predict(state_old.reshape((1, 3)))
-                final_move = prediction[0][0] * 100
+                final_move = int(prediction[0][0] * 100)
 
             # perform new move and get new state
             game.selectFloor(final_move)
