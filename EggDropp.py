@@ -70,14 +70,15 @@ def run():
 
             # perform random actions based on agent.epsilon, or choose the action
             if randint(0, 200) < agent.epsilon:
-                final_move = randint(1, 101)
+                final_move = randint(0, 99)
             else:
                 # predict action based on the old state
                 prediction = agent.model.predict(state_old.reshape((1, 3)))
-                final_move = int(prediction[0][0] * 100)
+                # final_move = int(prediction[0][0] * 100)
+                final_move = np.argmax(prediction[0])
 
             # perform new move and get new state
-            game.selectFloor(final_move)
+            game.selectFloor(final_move + 1)
             state_new = agent.get_state(game)
 
             # set reward for the new state

@@ -8,8 +8,8 @@ from keras.layers import Activation
 from keras import backend as K
 
 
-def AmaderRelu(x):
-    return K.relu(x, max_value=1.0, threshold=0.01)
+# def AmaderRelu(x):
+#     return K.relu(x, max_value=1.0, threshold=0.01)
 
 
 class GameLearner:
@@ -60,8 +60,7 @@ class GameLearner:
         model.add(Dropout(0.15))
         model.add(Dense(output_dim=120, activation='relu'))
         model.add(Dropout(0.15))
-
-        model.add(Dense(output_dim=1, activation=AmaderRelu))
+        model.add(Dense(output_dim=100, activation='softmax'))
         opt = Adam(self.learning_rate)
         model.compile(loss='mse', optimizer=opt)
 
@@ -87,8 +86,13 @@ class GameLearner:
 
     def train_short_memory(self, state, action, reward, next_state, done):
         target = reward
+        modelPreds = []
         if not done:
-            target = reward + self.gamma * np.amax(self.model.predict(next_state.reshape((1, 3)))[0])
+            pred = self.model.predict(next_state.resshape((1, 3)))[0]
+            modelPreds.append(pred)
+            target = reward + self.gamma * np.amax(pred)
         target_f = self.model.predict(state.reshape((1, 3)))
+        modelPreds.append(target_f[0])
         target_f[0][np.argmax(action)] = target
+        modelPreds.append(target_f[0])
         self.model.fit(state.reshape((1, 3)), target_f, epochs=1, verbose=0)
