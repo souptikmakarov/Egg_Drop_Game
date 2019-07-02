@@ -15,11 +15,9 @@ from keras import backend as K
 class GameLearner:
     def __init__(self):
         self.reward = 0
-        self.gamma = 0.9
-        self.dataframe = pd.DataFrame()
+        self.gamma = 0.8
+        self.alpha = 0.8
         self.short_memory = np.array([])
-        self.agent_target = 1
-        self.agent_predict = 0
         self.learning_rate = 0.0005
         self.model = self.network()
         # self.model = self.network("weights.hdf5")
@@ -36,19 +34,28 @@ class GameLearner:
         extraPenalty = game.getRewardVal()
         if game.targetReached():
             if game.eggCount == 1:
-                self.reward = 10
+                self.reward = 100
             elif game.eggCount == 0:
-                self.reward = 5
+                self.reward = 50
         elif game.isStateChange():
-            if game.eggCount == 1:
-                self.reward = -(5 + extraPenalty)
-            elif game.eggCount == 0:
-                self.reward = -(10 + extraPenalty) #game end
+            if game.progressing:
+                if game.eggCount == 1:
+                    self.reward = -(5 + extraPenalty)
+                elif game.eggCount == 0:
+                    self.reward = -(15 + extraPenalty) #game end
+            else:
+                if game.eggCount == 1:
+                    self.reward = -(20 + extraPenalty)
+                elif game.eggCount == 0:
+                    self.reward = -(35 + extraPenalty) #game end
         else:
-            if game.eggCount == 2:
-                self.reward = 2 + int(100/extraPenalty)
-            elif game.eggCount == 1:
-                self.reward = 1 + int(100/extraPenalty)
+            if game.progressing:
+                if game.eggCount == 2:
+                    self.reward = -5 + int(100/extraPenalty)
+                elif game.eggCount == 1:
+                    self.reward = -10 + int(100/extraPenalty)
+            else:
+                self.reward = - (5 + extraPenalty)
         return self.reward
 
 
@@ -88,9 +95,9 @@ class GameLearner:
         target = reward
         modelPreds = []
         if not done:
-            pred = self.model.predict(next_state.resshape((1, 3)))[0]
+            pred = self.model.predict(next_state.reshape((1, 3)))[0]
             modelPreds.append(pred)
-            target = reward + self.gamma * np.amax(pred)
+            target = self.alpha * (reward + self.gamma * np.amax(pred))
         target_f = self.model.predict(state.reshape((1, 3)))
         modelPreds.append(target_f[0])
         target_f[0][np.argmax(action)] = target
