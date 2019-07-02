@@ -20,17 +20,24 @@ class EggDrop:
     def selectFloor(self, floor):
         self.prevFloor = self.floor
         self.floor = floor
+
+        #if egg is broken
         if floor >= self.targetFloor:
             self.eggCount -= 1
             self.stateChange = True
+            # if last prediction was a higher floor than the current prediction
             if self.prevFloor > self.floor:
                 self.progressing = True
+            # if last prediction was a lower floor than the current prediction or the same value
             else:
                 self.progressing = False
-        else :
+        # if egg is not broken
+        else:
             self.stateChange = False
+            # if last prediction was a higher floor than the current prediction or the same value
             if self.prevFloor >= self.floor:
                 self.progressing = False
+            # if last prediction was a lower floor than the current prediction
             else:
                 self.progressing = True
 
@@ -84,7 +91,7 @@ def run():
             else:
                 # predict action based on the old state
                 prediction = agent.model.predict(state_old.reshape((1, 3)))
-                # final_move = int(prediction[0][0] * 100)
+                # take the floor value for which predicted reward is highest
                 final_move = np.argmax(prediction[0])
 
             # perform new move and get new state

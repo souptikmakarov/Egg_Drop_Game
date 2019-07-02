@@ -32,28 +32,37 @@ class GameLearner:
     def set_reward(self, game):
         self.reward = 0
         extraPenalty = game.getRewardVal()
+        # if game is won
         if game.targetReached():
+            # if 1 egg remains
             if game.eggCount == 1:
                 self.reward = 100
+            # if 0 eggs remain
             elif game.eggCount == 0:
                 self.reward = 50
+        # if an egg was broken and it was a wrong guess
         elif game.isStateChange():
+            # if the agent is guessing towards the correct answer
             if game.progressing:
                 if game.eggCount == 1:
                     self.reward = -(5 + extraPenalty)
                 elif game.eggCount == 0:
                     self.reward = -(15 + extraPenalty) #game end
+            # if the agent is guessing away from the correct answer
             else:
                 if game.eggCount == 1:
                     self.reward = -(20 + extraPenalty)
                 elif game.eggCount == 0:
                     self.reward = -(35 + extraPenalty) #game end
+        # if the egg did not break
         else:
+            # if the agent is guessing towards the correct answer
             if game.progressing:
                 if game.eggCount == 2:
                     self.reward = -5 + int(100/extraPenalty)
                 elif game.eggCount == 1:
                     self.reward = -10 + int(100/extraPenalty)
+            # if the agent is guessing away from the correct answer
             else:
                 self.reward = - (5 + extraPenalty)
         return self.reward
@@ -67,6 +76,7 @@ class GameLearner:
         model.add(Dropout(0.15))
         model.add(Dense(output_dim=120, activation='relu'))
         model.add(Dropout(0.15))
+        # output is 100 values, each value describing the probable reward on dropping the egg from that floor
         model.add(Dense(output_dim=100, activation='softmax'))
         opt = Adam(self.learning_rate)
         model.compile(loss='mse', optimizer=opt)
@@ -93,13 +103,10 @@ class GameLearner:
 
     def train_short_memory(self, state, action, reward, next_state, done):
         target = reward
-        modelPreds = []
         if not done:
             pred = self.model.predict(next_state.reshape((1, 3)))[0]
-            modelPreds.append(pred)
+            #alpha is the learning rate
             target = self.alpha * (reward + self.gamma * np.amax(pred))
         target_f = self.model.predict(state.reshape((1, 3)))
-        modelPreds.append(target_f[0])
         target_f[0][np.argmax(action)] = target
-        modelPreds.append(target_f[0])
         self.model.fit(state.reshape((1, 3)), target_f, epochs=1, verbose=0)
