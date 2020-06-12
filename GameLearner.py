@@ -1,7 +1,7 @@
 import random
 import numpy as np
 import pandas as pd
-from keras.optimizers import Adam
+from keras.optimizers import Adam, RMSprop
 from keras.models import Sequential
 from keras.layers.core import Dense, Dropout
 from keras.layers import Activation
@@ -77,8 +77,13 @@ class GameLearner:
         model.add(Dense(output_dim=120, activation='relu'))
         model.add(Dropout(0.15))
         # output is 100 values, each value describing the probable reward on dropping the egg from that floor
-        model.add(Dense(output_dim=100, activation='softmax'))
-        opt = Adam(self.learning_rate)
+        # model.add(Dense(output_dim=100, activation='softmax'))
+        # opt = Adam(self.learning_rate)
+
+
+        model.add(Dense(input_dim=120, output_dim=100, activation='relu'))
+        opt = RMSprop(lr=self.learning_rate)
+
         model.compile(loss='mse', optimizer=opt)
 
         if weights:
